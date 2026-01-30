@@ -1,44 +1,44 @@
 # Log Trimmer (ArduPilot DataFlash)
 
-Production-ready desktop app for trimming and cutting ArduPilot DataFlash flight logs with a modern iOS-like UI.
+Production-ready desktop tool for trimming ArduPilot DataFlash flight logs (`.BIN`). Built with **Python 3.11+**, **PySide6**, and **pyqtgraph**.
 
 ## Features
-- Open ArduPilot DataFlash `.BIN` logs with pymavlink DFReader.
-- Interactive timeline with range selection, zoom & pan (pyqtgraph).
-- Trim/Keep selection or Cut/Remove selection.
-- Multiple remove segments with Undo/Redo history.
-- Export a valid `.BIN` log for Mission Planner/MAVExplorer.
-- Diagnostics panel with local logging.
+- Import `.BIN` (DataFlash) logs with streaming parsing (pymavlink DFReader).
+- iOS-style glass UI with light theme and rounded panels.
+- Timeline selection with zoom/pan and multi-panel charts.
+- Trim/Keep selection, Cut/Remove selection, Undo/Redo history.
+- Export trimmed `.BIN` without loading whole log into memory.
+- Diagnostics panel and file logging.
 
 ## Project Structure
 ```
-.
+log-trimmer/
 ├── app.py
+├── requirements.txt
 ├── core/
 │   ├── __init__.py
-│   ├── dataflash.py
-│   ├── indexer.py
-│   ├── logging_setup.py
+│   ├── exporter.py
+│   ├── history.py
+│   ├── log_reader.py
+│   ├── logging_config.py
 │   └── segments.py
 ├── ui/
 │   ├── __init__.py
+│   ├── charts.py
 │   ├── diagnostics.py
 │   ├── main_window.py
-│   ├── plotting.py
 │   ├── theme.py
-│   └── widgets.py
-├── tests/
-│   └── test_segments.py
-└── requirements.txt
+│   └── timeline.py
+└── tests/
+    └── test_segments.py
 ```
 
-## Installation
-> Python 3.11+ required.
+## Requirements
+- Python 3.11+
+- Works on Windows, macOS, and Linux
 
+Install dependencies:
 ```bash
-python -m venv .venv
-source .venv/bin/activate  # macOS/Linux
-# .venv\Scripts\activate  # Windows
 pip install -r requirements.txt
 ```
 
@@ -47,30 +47,25 @@ pip install -r requirements.txt
 python app.py
 ```
 
-## UX Flow (Quick Guide)
-1. **Open Log**: click "Open Log" or drop a `.BIN` file.
-2. **Select Range**: drag the timeline handles to choose start/end.
-3. **Trim / Cut**:
-   - *Trim/Keep* keeps only the selection.
-   - *Cut/Remove* removes the selection and joins the rest.
-4. **Undo/Redo** as needed.
-5. **Export As…** to save a new `.BIN` log.
-
-## Export Details
-- Exporting is streaming-based: the app parses the log with DFReader and copies raw record bytes into the new file while skipping removed segments.
-- If timestamps are unavailable, a record counter is used as a fallback.
-
 ## Tests
 ```bash
 pytest
 ```
 
-## Packaging (Optional: PyInstaller)
-```bash
-pip install pyinstaller
-pyinstaller --onefile --windowed app.py
-```
+## UX Flow (Quick Guide)
+1. **Open Log** from the landing screen or drag & drop `.BIN` file.
+2. Inspect **file stats** on the left, see the **timeline** and **charts** in the center.
+3. Drag the selection window on the timeline to choose a time range.
+4. Click **Trim/Keep Selection** or **Cut/Remove Selection** to build segments.
+5. Use **Undo/Redo** to adjust.
+6. Click **Export As…** to save a valid DataFlash `.BIN` for Mission Planner/MAVExplorer.
 
 ## Notes
-- The UI theme mimics iOS 26 “glass” styling using translucent panels and soft shadows.
-- Logs are cached/parsed in a streaming fashion to avoid loading everything into memory.
+- Parsing and indexing are streamed via **pymavlink DFReader**. For very large logs, the app stores lightweight index points and chart samples.
+- Diagnostics are stored in `~/.log_trimmer/app.log` and can be viewed from the UI.
+
+## Packaging (optional)
+Use PyInstaller:
+```bash
+pyinstaller --noconfirm --name LogTrimmer --windowed app.py
+```
